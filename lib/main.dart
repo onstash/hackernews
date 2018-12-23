@@ -42,7 +42,7 @@ class HackerNewsState extends State<HackerNews> {
 
   void _loadOpenedLinks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List _openedLinks = prefs.getStringList("openedLinks");
+    List _openedLinks = (prefs.getStringList("openedLinks") ?? []);
     setState(() {
       openedLinks = _openedLinks;
     });
