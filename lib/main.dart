@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
 
@@ -26,31 +27,62 @@ class HackerNews extends StatefulWidget {
 }
 
 class HackerNewsState extends State<HackerNews> {
-  final String url = "https://api.hnpwa.com/v0/news/1.json";
-  List data;
+  int currentPage = 1;
+  int lastItemIndex = -1;
+  List data = [];
+  List<int> loadedIndices = [];
+  List<String> openedLinks = [];
 
   @override
   void initState() {
     super.initState();
+    this._getJSONData();
+    this._loadOpenedLinks();
+  }
 
-    this.getJSONData();
+  void _loadOpenedLinks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List _openedLinks = prefs.getStringList("openedLinks");
+    setState(() {
+      openedLinks = _openedLinks;
+    });
   }
 
   void _launchURL(String _url) async {
-    print(_url);
     await launch(_url);
   }
 
-  Future<String> getJSONData() async {
+  Future<String> _getJSONData() async {
+    String url = "https://api.hnpwa.com/v0/news/" + currentPage.toString() + ".json";
     var response = await http.get(
       Uri.encodeFull(url),
       headers: {"Accept": "application/json"},
     );
     setState(() {
-      data = jsonDecode(response.body);
+      for (var value in jsonDecode(response.body)) {
+        data.add(value);
+      }
+      lastItemIndex = data.length - 1;
     });
-
     return "Successful";
+  }
+
+  void _incrementPageNum() {
+    if (currentPage + 1 == 4) {
+      return;
+    }
+    currentPage = currentPage + 1;
+  }
+
+  void _updateOpenedLinks(url) async {
+//    SharedPreferences.setMockInitialValues({});
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (openedLinks.contains(url) == false) {
+      setState(() {
+        openedLinks.add(url);
+      });
+      await prefs.setStringList("openedLinks", openedLinks);
+    }
   }
 
   @override
@@ -62,15 +94,24 @@ class HackerNewsState extends State<HackerNews> {
       body: ListView.builder(
         itemCount: data == null ? 0 : data.length,
         itemBuilder: (BuildContext context, int index) {
+          var urlChecked = openedLinks.contains(data[index]["url"]);
+          if (index > 0 && index % 29 == 0 && loadedIndices.contains(index) == false) {
+            _incrementPageNum();
+            _getJSONData();
+            loadedIndices.add(index);
+          }
           return GestureDetector(
             onTap: () {
-              print("Container clicked" + index.toString());
-              if (data[index]["url"].startsWith("item?")) {
-                _launchURL("https://news.ycombinator.com/" + data[index]["url"]);
-              } else {
-                _launchURL(data[index]["url"]);
-              }
-
+              final snackBar = SnackBar(content: Text("Opening: " + data[index]["title"]), duration: Duration(milliseconds: 500));
+              Scaffold.of(context).showSnackBar(snackBar);
+              Future.delayed(const Duration(milliseconds: 850), () {
+                if (data[index]["url"].startsWith("item?")) {
+                  _launchURL("https://news.ycombinator.com/" + data[index]["url"]);
+                } else {
+                  _launchURL(data[index]["url"]);
+                }
+                _updateOpenedLinks(data[index]["url"]);
+              });
             },
             child: Container(
               child: Card(
@@ -95,8 +136,9 @@ class HackerNewsState extends State<HackerNews> {
                       )
                     ]
                   ),
-                  padding: EdgeInsets.all(16.0)
+                  padding: EdgeInsets.all(16.0),
                 ),
+                color: urlChecked ? Colors.blueGrey : Colors.white,
               ),
             )
           );
