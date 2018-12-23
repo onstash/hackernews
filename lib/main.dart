@@ -77,12 +77,11 @@ class HackerNewsState extends State<HackerNews> {
   void _updateOpenedLinks(url) async {
 //    SharedPreferences.setMockInitialValues({});
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (openedLinks.contains(url) == false) {
-      setState(() {
-        openedLinks.add(url);
-      });
-      await prefs.setStringList("openedLinks", openedLinks);
-    }
+    var urlOpened = openedLinks.contains(url) == false;
+    setState(() {
+      urlOpened ? openedLinks.add(url) : openedLinks.remove(url);
+    });
+    await prefs.setStringList("openedLinks", openedLinks);
   }
 
   @override
@@ -110,6 +109,14 @@ class HackerNewsState extends State<HackerNews> {
                 } else {
                   _launchURL(data[index]["url"]);
                 }
+                _updateOpenedLinks(data[index]["url"]);
+              });
+            },
+            onLongPress: () {
+              var flag = openedLinks.contains(data[index]["url"]) ? "not read" : "read";
+              final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index]["title"]), duration: Duration(milliseconds: 500));
+              Scaffold.of(context).showSnackBar(snackBar);
+              Future.delayed(const Duration(milliseconds: 850), () {
                 _updateOpenedLinks(data[index]["url"]);
               });
             },
