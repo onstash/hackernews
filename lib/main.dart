@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(MyApp());
 
@@ -7,8 +11,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Todo App',
-      home: TodoList(),
+      title: 'HackerNews',
+      home: HackerNews(),
       theme: ThemeData(
         primaryColor: Colors.purple,
       )
@@ -16,114 +20,88 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class TodoList extends StatefulWidget {
+class HackerNews extends StatefulWidget {
   @override
-  createState() => new TodoListState();
+  HackerNewsState createState() => new HackerNewsState();
 }
 
-class TodoListState extends State<TodoList> {
-  List<String> _todoItems = [];
-//  List<int> _todoItemsCompleted = [];
+class HackerNewsState extends State<HackerNews> {
+  final String url = "https://api.hnpwa.com/v0/news/1.json";
+  List data;
 
-  void _addTodoListItem(String todoText) {
-    if (todoText.length > 0) {
-      setState(() {
-        _todoItems.add(todoText);
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+
+    this.getJSONData();
   }
 
-  void _pushAddTodoScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("Add a task")
-          ),
-          body: TextField(
-            autofocus: true,
-            onSubmitted: (todoText) {
-              _addTodoListItem(todoText);
-              Navigator.pop(context);
-            },
-            decoration: InputDecoration(
-              hintText: "Enter something to do...",
-              contentPadding: const EdgeInsets.all(16.0),
-            ),
-          )
-        );
-      })
+  void _launchURL(String _url) async {
+    print(_url);
+    await launch(_url);
+  }
+
+  Future<String> getJSONData() async {
+    var response = await http.get(
+      Uri.encodeFull(url),
+      headers: {"Accept": "application/json"},
     );
-  }
-
-  void _removeTodoItem(int index) {
     setState(() {
-      _todoItems.removeAt(index);
+      data = jsonDecode(response.body);
     });
-  }
 
-  void _promptRemoveTodoItem(int index) {
-    showDialog(context: context, builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Mark "${_todoItems[index]}" as complete?'),
-        actions: <Widget>[
-          FlatButton(
-            child: Text("Cancel"),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          FlatButton(
-            child: Text("Mark as done"),
-            onPressed: () {
-              _removeTodoItem(index);
-              Navigator.of(context).pop();
-            },
-          ),
-        ]
-      );
-    });
-  }
-
-  Widget _buildTodoList() {
-    return ListView.builder(itemBuilder: (context, index) {
-      if (index < _todoItems.length) {
-        return _buildTodoItem(index, _todoItems[index]);
-      }
-    });
-  }
-
-  Widget _buildTodoItem(int index, String todoText) {
-//    if (_todoItemsCompleted.contains(index)) {
-//      return ListTile(
-//        title: Text(
-//          todoText,
-//          style: TextStyle(
-//            color: Colors.red,
-//            decoration: TextDecoration.lineThrough,
-//          )
-//        ),
-//        onTap: () => _promptRemoveTodoItem(index),
-//      );
-//    }
-
-    return ListTile(
-      title: Text(todoText),
-      onTap: () => _promptRemoveTodoItem(index),
-    );
+    return "Successful";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Tasks at hand"),
+        title: Text("HackerNews top posts"),
       ),
-      body: _buildTodoList(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _pushAddTodoScreen,
-        tooltip: "Add task",
-        child: Icon(Icons.add),
-      ),
+      body: ListView.builder(
+        itemCount: data == null ? 0 : data.length,
+        itemBuilder: (BuildContext context, int index) {
+          return GestureDetector(
+            onTap: () {
+              print("Container clicked" + index.toString());
+              if (data[index]["url"].startsWith("item?")) {
+                _launchURL("https://news.ycombinator.com/" + data[index]["url"]);
+              } else {
+                _launchURL(data[index]["url"]);
+              }
+
+            },
+            child: Container(
+              child: Card(
+                child: Padding(
+                  child: Column(
+                    children: <Widget>[
+                      Wrap(
+                        children: <Widget>[
+                          Text(data[index]["title"]),
+                        ],
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 10.0),
+                        child: Row(
+                          children: <Widget>[
+                            Text(data[index]["time_ago"],
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ))
+                          ],
+                        ),
+                      )
+                    ]
+                  ),
+                  padding: EdgeInsets.all(16.0)
+                ),
+              ),
+            )
+          );
+        }
+      )
     );
   }
 }
-
