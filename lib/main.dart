@@ -157,7 +157,14 @@ class HackerNewsState extends State<HackerNews> {
                     children: <Widget>[
                       Wrap(
                         children: <Widget>[
-                          Text(data[index]["title"]),
+                          Text(
+                            data[index]["title"],
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                              color: urlChecked ? Colors.blueGrey : Colors.black,
+                            )
+                          ),
                         ],
                       ),
                       Container(
@@ -167,6 +174,7 @@ class HackerNewsState extends State<HackerNews> {
                             Text(data[index]["time_ago"],
                             style: TextStyle(
                               color: Colors.grey,
+                              fontSize: 14.0,
                             ))
                           ],
                         ),
@@ -175,7 +183,7 @@ class HackerNewsState extends State<HackerNews> {
                   ),
                   padding: EdgeInsets.all(16.0),
                 ),
-                color: urlChecked ? Colors.blueGrey : Colors.white,
+                elevation: 2.0,
               ),
             )
           );
