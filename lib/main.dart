@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 
 void main() => runApp(MyApp());
 
@@ -24,6 +24,25 @@ class MyApp extends StatelessWidget {
 class HackerNews extends StatefulWidget {
   @override
   HackerNewsState createState() => new HackerNewsState();
+}
+
+class HNWebView extends StatelessWidget {
+  final String url;
+  final String title;
+
+  HNWebView({Key key, @required this.url, @required this.title}): super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return WebviewScaffold(
+      url: url,
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      withZoom: false,
+      withLocalStorage: true,
+    );
+  }
 }
 
 class HackerNewsState extends State<HackerNews> {
@@ -48,10 +67,6 @@ class HackerNewsState extends State<HackerNews> {
     });
   }
 
-  void _launchURL(String _url) async {
-    await launch(_url);
-  }
-
   Future<String> _getJSONData() async {
     String url = "https://api.hnpwa.com/v0/news/" + currentPage.toString() + ".json";
     var response = await http.get(
@@ -74,14 +89,17 @@ class HackerNewsState extends State<HackerNews> {
     currentPage = currentPage + 1;
   }
 
-  void _updateOpenedLinks(url) async {
+  void _updateOpenedLinks(String url, String source) async {
 //    SharedPreferences.setMockInitialValues({});
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var urlOpened = openedLinks.contains(url) == false;
-    setState(() {
-      urlOpened ? openedLinks.add(url) : openedLinks.remove(url);
-    });
-    await prefs.setStringList("openedLinks", openedLinks);
+    var urlOpened = openedLinks.contains(url) == true;
+    var allowedStateUpdates = (source == "onTap" && urlOpened == false) || (source == "onLongPress");
+    if (allowedStateUpdates) {
+      setState(() {
+        urlOpened ? openedLinks.remove(url) : openedLinks.add(url);
+      });
+      await prefs.setStringList("openedLinks", openedLinks);
+    }
   }
 
   @override
@@ -101,23 +119,35 @@ class HackerNewsState extends State<HackerNews> {
           }
           return GestureDetector(
             onTap: () {
-              final snackBar = SnackBar(content: Text("Opening: " + data[index]["title"]), duration: Duration(milliseconds: 500));
-              Scaffold.of(context).showSnackBar(snackBar);
-              Future.delayed(const Duration(milliseconds: 850), () {
-                if (data[index]["url"].startsWith("item?")) {
-                  _launchURL("https://news.ycombinator.com/" + data[index]["url"]);
-                } else {
-                  _launchURL(data[index]["url"]);
-                }
-                _updateOpenedLinks(data[index]["url"]);
-              });
+              if (data[index]["url"].startsWith("item?")) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HNWebView(
+                            url: "https://news.ycombinator.com/" + data[index]["url"],
+                            title: data[index]["title"]
+                        )
+                    )
+                );
+              } else {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HNWebView(
+                            url: data[index]["url"],
+                            title: data[index]["title"]
+                        )
+                    )
+                );
+              }
+              _updateOpenedLinks(data[index]["url"], "onTap");
             },
             onLongPress: () {
               var flag = openedLinks.contains(data[index]["url"]) ? "not read" : "read";
               final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index]["title"]), duration: Duration(milliseconds: 500));
               Scaffold.of(context).showSnackBar(snackBar);
               Future.delayed(const Duration(milliseconds: 850), () {
-                _updateOpenedLinks(data[index]["url"]);
+                _updateOpenedLinks(data[index]["url"], "onLongPress");
               });
             },
             child: Container(
