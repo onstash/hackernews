@@ -10,12 +10,53 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HackerNews',
-      home: HackerNews(
-        url: "https://api.hnpwa.com/v0/news/",
-        currentPage: 1
+      home: DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text("NewsHacker"),
+            bottom: TabBar(
+              tabs: [
+                Tab(text: "News"),
+                Tab(text: "Newest"),
+                Tab(text: "Ask"),
+                Tab(text: "Show"),
+              ],
+              indicatorColor: Colors.white,
+              isScrollable: true,
+              labelStyle: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              unselectedLabelStyle: TextStyle(
+                color: Colors.white12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          body: TabBarView(children: [
+            HackerNews(
+              url: "https://api.hnpwa.com/v0/news/",
+              currentPage: 1
+            ),
+            HackerNews(
+              url: "https://api.hnpwa.com/v0/newest/",
+              currentPage: 1
+            ),
+            HackerNews(
+              url: "https://api.hnpwa.com/v0/ask/",
+              currentPage: 1
+            ),
+            HackerNews(
+              url: "https://api.hnpwa.com/v0/show/",
+              currentPage: 1
+            ),
+          ]),
+        )
       ),
       theme: ThemeData(
-        primaryColor: Colors.deepOrange,
+        primaryColor: Colors.deepOrangeAccent,
       )
     );
   }
