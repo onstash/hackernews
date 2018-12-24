@@ -25,12 +25,15 @@ class Title extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 16.0,
-        fontWeight: FontWeight.w500,
-        color: urlOpened ? Colors.grey : Colors.black,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w500,
+          color: urlOpened ? Colors.grey : Colors.black,
+        )
       )
     );
   }
