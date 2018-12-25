@@ -116,23 +116,23 @@ class HackerNewsState extends State<HackerNews> {
               onTap: () {
                 if (data[index].url.startsWith("item?")) {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HNWebView(
-                              url: "https://news.ycombinator.com/" + data[index].url,
-                              title: data[index].title
-                          )
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HNWebView(
+                        url: "https://news.ycombinator.com/" + data[index].url,
+                        title: data[index].title
                       )
+                    )
                   );
                 } else {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HNWebView(
-                              url: data[index].url,
-                              title: data[index].title
-                          )
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HNWebView(
+                        url: data[index].url,
+                        title: data[index].title
                       )
+                    )
                   );
                 }
                 _updateOpenedLinks(data[index].url, "onTap");
