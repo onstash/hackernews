@@ -38,19 +38,23 @@ class MyApp extends StatelessWidget {
           body: TabBarView(children: [
             HackerNews(
               url: "https://api.hnpwa.com/v0/news/",
-              currentPage: 1
+              currentPage: 1,
+              maxPages: 10,
             ),
             HackerNews(
               url: "https://api.hnpwa.com/v0/newest/",
-              currentPage: 1
+              currentPage: 1,
+              maxPages: 12,
             ),
             HackerNews(
               url: "https://api.hnpwa.com/v0/ask/",
-              currentPage: 1
+              currentPage: 1,
+              maxPages: 2,
             ),
             HackerNews(
               url: "https://api.hnpwa.com/v0/show/",
-              currentPage: 1
+              currentPage: 1,
+              maxPages: 2,
             ),
           ]),
         )

@@ -12,22 +12,38 @@ import 'package:hackernews/hn-model.dart';
 class HackerNews extends StatefulWidget {
   final String url;
   final int currentPage;
+  final int maxPages;
 
-  HackerNews({Key key, @required this.url, @required this.currentPage}): super(key: key);
+  HackerNews({
+    Key key,
+    @required this.url,
+    @required this.currentPage,
+    @required this.maxPages
+  }): super(key: key);
 
   @override
-  HackerNewsState createState() => new HackerNewsState(url: this.url, currentPage: this.currentPage);
+  HackerNewsState createState() => new HackerNewsState(
+    url: this.url,
+    currentPage: this.currentPage,
+    maxPages: this.maxPages
+  );
 }
 
 class HackerNewsState extends State<HackerNews> {
   int currentPage;
+  int maxPages;
   int lastItemIndex = -1;
   List data = [];
   List<int> loadedIndices = [];
   List<String> openedLinks = [];
   String url;
 
-  HackerNewsState({Key key, @required this.url, @required this.currentPage});
+  HackerNewsState({
+    Key key,
+    @required this.url,
+    @required this.currentPage,
+    @required this.maxPages
+  });
 
   @override
   void initState() {
@@ -57,14 +73,17 @@ class HackerNewsState extends State<HackerNews> {
       }
       lastItemIndex = data.length - 1;
     });
+    print("currentPage: " + currentPage.toString() + "/" + maxPages.toString());
     return "Successful";
   }
 
-  void _incrementPageNum() {
-    if (currentPage + 1 == 10) {
-      return;
+  bool _incrementPageNum() {
+    if (currentPage + 1 > maxPages) {
+      return false;
     }
     currentPage = currentPage + 1;
+    print("currentPage: " + currentPage.toString() + "/" + maxPages.toString());
+    return true;
   }
 
   void _updateOpenedLinks(String url, String source) async {
@@ -86,10 +105,12 @@ class HackerNewsState extends State<HackerNews> {
         itemCount: data == null ? 0 : data.length,
         itemBuilder: (BuildContext context, int index) {
           var urlChecked = openedLinks.contains(data[index].url);
-          if (index > 0 && index % 29 == 0 && loadedIndices.contains(index) == false) {
-            _incrementPageNum();
-            _getJSONData();
-            loadedIndices.add(index);
+          if (currentPage < maxPages) {
+            if (index > 0 && index % 29 == 0 && loadedIndices.contains(index) == false) {
+              _incrementPageNum();
+              _getJSONData();
+              loadedIndices.add(index);
+            }
           }
           return GestureDetector(
               onTap: () {
