@@ -7,6 +7,7 @@ import 'package:advanced_share/advanced_share.dart';
 
 import 'package:hackernews/hn-webview.dart';
 import 'package:hackernews/hn-components.dart';
+import 'package:hackernews/hn-model.dart';
 
 class HackerNews extends StatefulWidget {
   final String url;
@@ -51,8 +52,8 @@ class HackerNewsState extends State<HackerNews> {
       headers: {"Accept": "application/json"},
     );
     setState(() {
-      for (var value in jsonDecode(response.body)) {
-        data.add(value);
+      for (var postJSON in jsonDecode(response.body)) {
+        data.add(FeedCard.fromJSON(postJSON));
       }
       lastItemIndex = data.length - 1;
     });
@@ -60,7 +61,7 @@ class HackerNewsState extends State<HackerNews> {
   }
 
   void _incrementPageNum() {
-    if (currentPage + 1 == 5) {
+    if (currentPage + 1 == 10) {
       return;
     }
     currentPage = currentPage + 1;
@@ -84,7 +85,7 @@ class HackerNewsState extends State<HackerNews> {
     return ListView.builder(
         itemCount: data == null ? 0 : data.length,
         itemBuilder: (BuildContext context, int index) {
-          var urlChecked = openedLinks.contains(data[index]["url"]);
+          var urlChecked = openedLinks.contains(data[index].url);
           if (index > 0 && index % 29 == 0 && loadedIndices.contains(index) == false) {
             _incrementPageNum();
             _getJSONData();
@@ -92,13 +93,13 @@ class HackerNewsState extends State<HackerNews> {
           }
           return GestureDetector(
               onTap: () {
-                if (data[index]["url"].startsWith("item?")) {
+                if (data[index].url.startsWith("item?")) {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => HNWebView(
-                              url: "https://news.ycombinator.com/" + data[index]["url"],
-                              title: data[index]["title"]
+                              url: "https://news.ycombinator.com/" + data[index].url,
+                              title: data[index].title
                           )
                       )
                   );
@@ -107,20 +108,20 @@ class HackerNewsState extends State<HackerNews> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => HNWebView(
-                              url: data[index]["url"],
-                              title: data[index]["title"]
+                              url: data[index].url,
+                              title: data[index].title
                           )
                       )
                   );
                 }
-                _updateOpenedLinks(data[index]["url"], "onTap");
+                _updateOpenedLinks(data[index].url, "onTap");
               },
               onLongPress: () {
-                var flag = openedLinks.contains(data[index]["url"]) ? "not read" : "read";
-                final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index]["title"]), duration: Duration(milliseconds: 500));
+                var flag = openedLinks.contains(data[index].url) ? "not read" : "read";
+                final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index].url), duration: Duration(milliseconds: 500));
                 Scaffold.of(context).showSnackBar(snackBar);
                 Future.delayed(const Duration(milliseconds: 850), () {
-                  _updateOpenedLinks(data[index]["url"], "onLongPress");
+                  _updateOpenedLinks(data[index].url, "onLongPress");
                 });
               },
               child: Container(
@@ -128,8 +129,8 @@ class HackerNewsState extends State<HackerNews> {
                   child: Container(
                     child: Column(
                         children: <Widget>[
-                          Title(
-                            text: data[index]["title"],
+                          FeedCardTitle(
+                            text: data[index].title,
                             urlOpened: urlChecked,
                           ),
                           Container(
@@ -137,12 +138,13 @@ class HackerNewsState extends State<HackerNews> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
-                                TimeAgo(text: data[index]["time_ago"]),
+                                TimeAgo(text: data[index].timeAgo),
+                                Domain(text: data[index].domain),
                                 GestureDetector(
                                   onTap: () {
-                                    String __url = data[index]["url"].startsWith("item?") ? "https://news.ycombinator.com/" + data[index]["url"] : data[index]["url"];
+                                    String __url = data[index].url.startsWith("item?") ? "https://news.ycombinator.com/" + data[index].url : data[index].url;
                                     AdvancedShare.whatsapp(
-                                        msg: data[index]["title"] + " - " + __url
+                                        msg: data[index].title + " - " + __url
                                     ).then((_) => {
 
                                     });
@@ -151,7 +153,6 @@ class HackerNewsState extends State<HackerNews> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: <Widget>[
-                                        Text("Share", style: TextStyle(color: Colors.grey, fontSize: 16.0)),
                                         Container(
                                           child: Icon(Icons.share, color: Colors.grey, size: 22.0,),
                                           margin: EdgeInsets.only(left: 5.0),
