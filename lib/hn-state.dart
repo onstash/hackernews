@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:advanced_share/advanced_share.dart';
 
 import 'package:hackernews/hn-webview.dart';
+import 'package:hackernews/hn-components.dart';
 
 class HackerNews extends StatefulWidget {
   final String url;
@@ -15,45 +16,6 @@ class HackerNews extends StatefulWidget {
 
   @override
   HackerNewsState createState() => new HackerNewsState(url: this.url, currentPage: this.currentPage);
-}
-
-class Title extends StatelessWidget {
-  final String text;
-  final bool urlOpened;
-
-  Title({Key key, @required this.text, @required this.urlOpened}): super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.w500,
-          color: urlOpened ? Colors.grey : Colors.black,
-        )
-      )
-    );
-  }
-}
-
-class TimeAgo extends StatelessWidget {
-  final String text;
-
-  TimeAgo({Key key, @required this.text}): super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        color: Colors.grey,
-        fontSize: 14.0,
-      )
-    );
-  }
 }
 
 class HackerNewsState extends State<HackerNews> {
