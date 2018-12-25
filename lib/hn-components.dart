@@ -7,12 +7,14 @@ class TimeAgo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-        text,
+    return RichText(
+      text: TextSpan(
+        text: text,
         style: TextStyle(
           color: Colors.grey,
           fontSize: 14.0,
         )
+      )
     );
   }
 }
@@ -26,16 +28,18 @@ class FeedCardTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w500,
-              color: urlOpened ? Colors.grey : Colors.black,
-              decoration: urlOpened ? TextDecoration.lineThrough : null,
-            )
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.w500,
+            color: urlOpened ? Colors.grey : Colors.black,
+            decoration: urlOpened ? TextDecoration.lineThrough : null,
+          )
         )
+      )
     );
   }
 }
