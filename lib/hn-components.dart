@@ -43,14 +43,14 @@ class FeedCardTitle extends StatelessWidget {
 class Domain extends StatelessWidget {
   final String text;
 
-  Domain({Key key, @required this.text}): super(key: key);
+  Domain({Key key, this.text}): super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Align(
         alignment: Alignment.centerLeft,
         child: Text(
-            text,
+            text ?? "",
             style: TextStyle(
               fontSize: 16.0,
               fontWeight: FontWeight.w300,
