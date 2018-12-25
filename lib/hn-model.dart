@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class FeedCard {
   int id;
   String title;
