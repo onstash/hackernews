@@ -36,7 +36,6 @@ class FeedCardTitle extends StatelessWidget {
             fontSize: 16.0,
             fontWeight: FontWeight.w500,
             color: urlOpened ? Colors.grey : Colors.black,
-            decoration: urlOpened ? TextDecoration.lineThrough : null,
           )
         )
       )
