@@ -186,27 +186,6 @@ class HackerNewsState extends State<HackerNews> {
                               children: <Widget>[
                                 TimeAgo(text: data[index].timeAgo),
                                 Domain(text: data[index].domain),
-                                GestureDetector(
-                                  onTap: () {
-                                    String __url = data[index].url.startsWith("item?") ? "https://news.ycombinator.com/" + data[index].url : data[index].url;
-                                    AdvancedShare.whatsapp(
-                                        msg: data[index].title + " - " + __url
-                                    ).then((_) => {
-
-                                    });
-                                  },
-                                  child: Container(
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Container(
-                                          child: Icon(Icons.share, color: Colors.grey, size: 22.0,),
-                                          margin: EdgeInsets.only(left: 5.0),
-                                        )
-                                      ]
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                           )
