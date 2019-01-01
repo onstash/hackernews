@@ -147,6 +147,7 @@ class HackerNewsState extends State<HackerNews> {
               },
               child: Container(
                 child: Card(
+                  color: urlChecked ? Colors.grey[100] : Colors.white,
                   child: Container(
                     child: Column(
                         children: <Widget>[
