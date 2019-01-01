@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:advanced_share/advanced_share.dart';
 
 import 'package:hackernews/hn-webview.dart';
 import 'package:hackernews/hn-components.dart';
