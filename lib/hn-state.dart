@@ -185,7 +185,7 @@ class HackerNewsState extends State<HackerNews> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
                                 TimeAgo(text: data[index].timeAgo),
-                                Domain(text: data[index].domain),
+                                Domain(text: data[index].url.startsWith("item?") ? "news.ycombinator.com" : data[index].domain),
                               ],
                             ),
                           )
