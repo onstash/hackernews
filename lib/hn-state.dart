@@ -65,7 +65,7 @@ class HackerNewsState extends State<HackerNews> {
     setState(() {
       loading = true;
     });
-    Future.delayed(const Duration(milliseconds: 850), () async {
+    Future.delayed(const Duration(milliseconds: 500), () async {
       String _url = this.url + currentPage.toString() + ".json";
       var response = await http.get(
         Uri.encodeFull(_url),
