@@ -12,12 +12,12 @@ A HackerNews client written using Google's [Flutter SDK](https://flutter.io)
 
 ## Screenshots
 
-* ![Home](https://i.imgur.com/vkLakmJ.jpg)
-* ![WebView](https://i.imgur.com/nhfG5rJ.jpg)
-* ![Home with viewed links](https://i.imgur.com/CMjwBAT.jpg)
+* ![Home with loader](https://i.imgur.com/H03mIuT.jpg)
+* ![Home](https://i.imgur.com/D7PJCxB.jpg)
+* ![WebView with share action](https://i.imgur.com/zStZ0z7.jpg)
+* ![Home with viewed links](https://i.imgur.com/KKMXpZg.jpg)
 
 ## Upcoming features
 
 * Animations such as Shared Element transition
 * Loading view with comments and other metadata
-
