@@ -37,6 +37,7 @@ class HackerNewsState extends State<HackerNews> {
   List<int> loadedIndices = [];
   List<String> openedLinks = [];
   String url;
+  bool loading = true;
 
   HackerNewsState({
     Key key,
@@ -48,8 +49,8 @@ class HackerNewsState extends State<HackerNews> {
   @override
   void initState() {
     super.initState();
-    this._getJSONData();
     this._loadOpenedLinks();
+    this._getJSONData();
   }
 
   void _loadOpenedLinks() async {
@@ -60,21 +61,26 @@ class HackerNewsState extends State<HackerNews> {
     });
   }
 
-  Future<String> _getJSONData() async {
-//    String url = "https://api.hnpwa.com/v0/news/" + currentPage.toString() + ".json";
-    String _url = this.url + currentPage.toString() + ".json";
-    var response = await http.get(
-      Uri.encodeFull(_url),
-      headers: {"Accept": "application/json"},
-    );
+  Future _getJSONData() async {
     setState(() {
-      for (var postJSON in jsonDecode(response.body)) {
-        data.add(FeedCard.fromJSON(postJSON));
-      }
-      lastItemIndex = data.length - 1;
+      loading = true;
     });
-    print("currentPage: " + currentPage.toString() + "/" + maxPages.toString());
-    return "Successful";
+    Future.delayed(const Duration(milliseconds: 850), () async {
+      String _url = this.url + currentPage.toString() + ".json";
+      var response = await http.get(
+        Uri.encodeFull(_url),
+        headers: {"Accept": "application/json"},
+      );
+      setState(() {
+        for (var postJSON in jsonDecode(response.body)) {
+          data.add(FeedCard.fromJSON(postJSON));
+        }
+        lastItemIndex = data.length - 1;
+        loading = false;
+      });
+      print("currentPage: " + currentPage.toString() + "/" + maxPages.toString());
+      return "Successful";
+    });
   }
 
   bool _incrementPageNum() {
@@ -101,6 +107,24 @@ class HackerNewsState extends State<HackerNews> {
 
   @override
   Widget build(BuildContext context) {
+    if (this.loading) {
+      return Dialog(
+        child: Padding(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              CircularProgressIndicator(),
+              Container(
+                child: Text("Loading..."),
+                margin: EdgeInsets.only(left: 16.0),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.all(16.0),
+        )
+      );
+    }
+
     return ListView.builder(
         itemCount: data == null ? 0 : data.length,
         itemBuilder: (BuildContext context, int index) {
