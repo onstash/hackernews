@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
+
 import 'package:hackernews/hn-state.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  static FirebaseAnalytics analytics = FirebaseAnalytics();
+  static FirebaseAnalyticsObserver observer =
+    FirebaseAnalyticsObserver(analytics: analytics);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HackerNews',
+      navigatorObservers: <NavigatorObserver>[observer],
       home: DefaultTabController(
         length: 4,
         child: Scaffold(
@@ -40,21 +48,29 @@ class MyApp extends StatelessWidget {
               url: "https://api.hnpwa.com/v0/news/",
               currentPage: 1,
               maxPages: 10,
+              analytics: analytics,
+              observer: observer,
             ),
             HackerNews(
               url: "https://api.hnpwa.com/v0/newest/",
               currentPage: 1,
               maxPages: 12,
+              analytics: analytics,
+              observer: observer,
             ),
             HackerNews(
               url: "https://api.hnpwa.com/v0/ask/",
               currentPage: 1,
               maxPages: 2,
+              analytics: analytics,
+              observer: observer,
             ),
             HackerNews(
               url: "https://api.hnpwa.com/v0/show/",
               currentPage: 1,
               maxPages: 2,
+              analytics: analytics,
+              observer: observer,
             ),
           ]),
         )
