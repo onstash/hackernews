@@ -74,7 +74,7 @@ class HNWebViewState extends State<HNWebView> {
             IconButton(
               icon: Icon(Icons.share),
               onPressed: () {
-                Share.share(this.title + " - " + this.url)
+                Share.share(this.title + " - " + this.url + " (shared via hn.onstash.me)")
                   .then((onValue) {
                     this.analytics.logEvent(
                       name: "story_shared",
@@ -117,7 +117,7 @@ class HNWebViewState extends State<HNWebView> {
           IconButton(
               icon: Icon(Icons.share),
               onPressed: () {
-                Share.share(this.title + " - " + this.url)
+                Share.share(this.title + " - " + this.url + " (shared via hn.onstash.me)")
                   .then((onValue) {
                     this.analytics.logEvent(
                       name: "story_shared",
