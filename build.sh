@@ -13,8 +13,7 @@ fi
 
 inputBuildDir="build/app/outputs/apk/release"
 if [ ! -d $inputBuildDir ]; then
-    echo "[ERROR] '${inputBuildDir}' does not exist"
-    exit 1
+    echo "[WARN] '${inputBuildDir}' does not exist"
 fi
 inputBuildAPKFilename="app-release.apk"
 outputBuildDir="build-apks"
@@ -60,6 +59,7 @@ function installFlutterBuild {
 createBuildsDir
 cleanFlutterBuilds
 buildFutter
+createOutputBuildAPK
 if [[ $1 == "no-install" ]]; then
     echo "[WARN] Not installing flutter build apk..."
 else
