@@ -59,6 +59,7 @@ function installFlutterBuild {
 createBuildsDir
 cleanFlutterBuilds
 buildFutter
+createOutputBuildAPK
 if [[ $1 == "no-install" ]]; then
     echo "[WARN] Not installing flutter build apk..."
 else
