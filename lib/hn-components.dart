@@ -64,5 +64,29 @@ class Domain extends StatelessWidget {
   }
 }
 
+class Loader extends StatelessWidget {
+  String text;
+
+  Loader({Key key, this.text}): super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            CircularProgressIndicator(),
+            Container(
+              child: Text(this.text ?? "Loading..."),
+              margin: EdgeInsets.only(left: 16.0),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.all(16.0),
+      )
+    );
+  }
+}
 
 

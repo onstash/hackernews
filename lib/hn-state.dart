@@ -107,21 +107,7 @@ class HackerNewsState extends State<HackerNews> {
   @override
   Widget build(BuildContext context) {
     if (this.loading) {
-      return Dialog(
-        child: Padding(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              CircularProgressIndicator(),
-              Container(
-                child: Text("Loading..."),
-                margin: EdgeInsets.only(left: 16.0),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.all(16.0),
-        )
-      );
+      return Loader(text: "Fetching stories...");
     }
 
     return ListView.builder(
