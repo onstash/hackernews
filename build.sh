@@ -13,8 +13,7 @@ fi
 
 inputBuildDir="build/app/outputs/apk/release"
 if [ ! -d $inputBuildDir ]; then
-    echo "[ERROR] '${inputBuildDir}' does not exist"
-    exit 1
+    echo "[WARN] '${inputBuildDir}' does not exist"
 fi
 inputBuildAPKFilename="app-release.apk"
 outputBuildDir="build-apks"
