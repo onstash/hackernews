@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 
 import 'package:hackernews/hn-webview.dart';
 import 'package:hackernews/hn-components.dart';
@@ -12,19 +15,25 @@ class HackerNews extends StatefulWidget {
   final String url;
   final int currentPage;
   final int maxPages;
+  final FirebaseAnalytics analytics;
+  final FirebaseAnalyticsObserver observer;
 
   HackerNews({
     Key key,
     @required this.url,
     @required this.currentPage,
-    @required this.maxPages
+    @required this.maxPages,
+    @required this.analytics,
+    @required this.observer
   }): super(key: key);
 
   @override
   HackerNewsState createState() => new HackerNewsState(
     url: this.url,
     currentPage: this.currentPage,
-    maxPages: this.maxPages
+    maxPages: this.maxPages,
+    analytics: this.analytics,
+    observer: this.observer
   );
 }
 
@@ -37,12 +46,16 @@ class HackerNewsState extends State<HackerNews> {
   List<String> openedLinks = [];
   String url;
   bool loading = true;
+  final FirebaseAnalyticsObserver observer;
+  final FirebaseAnalytics analytics;
 
   HackerNewsState({
     Key key,
     @required this.url,
     @required this.currentPage,
-    @required this.maxPages
+    @required this.maxPages,
+    @required this.analytics,
+    @required this.observer,
   });
 
   @override
@@ -77,7 +90,13 @@ class HackerNewsState extends State<HackerNews> {
         lastItemIndex = data.length - 1;
         loading = false;
       });
-      print("currentPage: " + currentPage.toString() + "/" + maxPages.toString());
+      this._sendAnalyticsEvent(
+        "fetch_data",
+        {
+          "source": this.url,
+          "currentPage": currentPage
+        }
+      );
       return "Successful";
     });
   }
@@ -87,7 +106,6 @@ class HackerNewsState extends State<HackerNews> {
       return false;
     }
     currentPage = currentPage + 1;
-    print("currentPage: " + currentPage.toString() + "/" + maxPages.toString());
     return true;
   }
 
@@ -102,6 +120,13 @@ class HackerNewsState extends State<HackerNews> {
       });
       await prefs.setStringList("openedLinks", openedLinks);
     }
+  }
+
+  Future<void> _sendAnalyticsEvent(String eventName, Map<String, dynamic> parameters) async {
+    await this.analytics.logEvent(
+      name: eventName,
+      parameters: parameters
+    );
   }
 
   @override
@@ -122,73 +147,85 @@ class HackerNewsState extends State<HackerNews> {
             }
           }
           return GestureDetector(
-              onTap: () {
-                if (data[index].url.startsWith("item?")) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HNWebView(
-                        url: "https://news.ycombinator.com/" + data[index].url,
-                        title: data[index].title
-                      )
-                    )
-                  );
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HNWebView(
-                        url: data[index].url,
-                        title: data[index].title
-                      )
-                    )
-                  );
+            onTap: () async {
+              String __url = data[index].url.startsWith("item?") ? "https://news.ycombinator.com/" + data[index].url : data[index].url;
+              DateTime start = DateTime.now();
+
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HNWebView(
+                    url: __url,
+                    title: data[index].title,
+                    analytics: this.analytics,
+                    observer: this.observer,
+                  )
+                )
+              );
+
+              this._sendAnalyticsEvent(
+                "story_read",
+                {
+                  "url": __url,
+                  "title": data[index].title,
+                  "time_spent": DateTime.now().difference(start).inSeconds,
                 }
-                _updateOpenedLinks(data[index].url, "onTap");
-              },
-              onLongPress: () {
-                var flag = openedLinks.contains(data[index].url) ? "not read" : "read";
-                final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index].url), duration: Duration(milliseconds: 500));
-                Scaffold.of(context).showSnackBar(snackBar);
-                Future.delayed(const Duration(milliseconds: 850), () {
-                  _updateOpenedLinks(data[index].url, "onLongPress");
-                });
-              },
-              child: Container(
-                child: Card(
-                  color: urlChecked ? Colors.grey[100] : Colors.white,
-                  child: Container(
-                    child: Column(
-                        children: <Widget>[
-                          FeedCardTitle(
-                            text: data[index].title,
-                            urlOpened: urlChecked,
+              );
+
+              _updateOpenedLinks(data[index].url, "onTap");
+            },
+            onLongPress: () {
+              var flag = openedLinks.contains(data[index].url) ? "not read" : "read";
+              String __url = data[index].url.startsWith("item?") ? "https://news.ycombinator.com/" + data[index].url : data[index].url;
+              this._sendAnalyticsEvent(
+                "story_bookmarked",
+                {
+                  "url": __url,
+                  "title": data[index].title,
+                  "bookmarked": !openedLinks.contains(data[index].url)
+                }
+              );
+              final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index].url), duration: Duration(milliseconds: 500));
+              Scaffold.of(context).showSnackBar(snackBar);
+              Future.delayed(const Duration(milliseconds: 850), () {
+                _updateOpenedLinks(data[index].url, "onLongPress");
+              });
+            },
+            child: Container(
+              child: Card(
+                color: urlChecked ? Colors.grey[100] : Colors.white,
+                child: Container(
+                  child: Column(
+                      children: <Widget>[
+                        FeedCardTitle(
+                          text: data[index].title,
+                          urlOpened: urlChecked,
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(top: 10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              TimeAgo(text: data[index].timeAgo),
+                              Domain(text: data[index].url.startsWith("item?") ? "news.ycombinator.com" : data[index].domain),
+                            ],
                           ),
-                          Container(
-                            margin: EdgeInsets.only(top: 10.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                TimeAgo(text: data[index].timeAgo),
-                                Domain(text: data[index].url.startsWith("item?") ? "news.ycombinator.com" : data[index].domain),
-                              ],
-                            ),
-                          )
-                        ]
-                    ),
-                    padding: EdgeInsets.all(16.0),
+                        )
+                      ]
                   ),
-                  elevation: 2.0,
-                  margin: EdgeInsets.only(
-                    top: 16.0,
-                    bottom: index == data.length - 1 ? 16.0 : 0.0,
-                    left: 10.0,
-                    right: 10.0,
-                  ),
+                  padding: EdgeInsets.all(16.0),
                 ),
-              )
-          );
-        }
+                elevation: 2.0,
+                margin: EdgeInsets.only(
+                  top: 16.0,
+                  bottom: index == data.length - 1 ? 16.0 : 0.0,
+                  left: 10.0,
+                  right: 10.0,
+                ),
+              ),
+            )
+        );
+      }
     );
   }
 }
