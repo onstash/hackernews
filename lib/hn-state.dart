@@ -90,6 +90,13 @@ class HackerNewsState extends State<HackerNews> {
         lastItemIndex = data.length - 1;
         loading = false;
       });
+      this._sendAnalyticsEvent(
+        "fetch_data",
+        {
+          "source": this.url,
+          "currentPage": currentPage
+        }
+      );
       return "Successful";
     });
   }
