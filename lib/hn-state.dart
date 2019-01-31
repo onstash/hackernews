@@ -131,45 +131,108 @@ class HackerNewsState extends State<HackerNews> {
 
   @override
   Widget build(BuildContext context) {
-    if (this.loading) {
-      return Loader(text: "Fetching stories...");
+    if (this.loading && data.length == 0) {
+      return Stack(
+        children: <Widget>[
+          Loader(text: "Fetching stories...")
+        ],
+      );
     }
 
-    return ListView.builder(
-        itemCount: data == null ? 0 : data.length,
-        itemBuilder: (BuildContext context, int index) {
-          var urlChecked = openedLinks.contains(data[index].url);
+    var listView = ListView.builder(
+      itemCount: data == null ? 0 : data.length + 1,
+      itemBuilder: (BuildContext context, int index) {
+        if (index >= data.length) {
           if (currentPage < maxPages) {
-            if (index > 0 && index % 29 == 0 && loadedIndices.contains(index) == false) {
-              _incrementPageNum();
-              _getJSONData();
-              loadedIndices.add(index);
-            }
+            return GestureDetector(
+              onTap: () async {
+                _incrementPageNum();
+                _getJSONData();
+              },
+              child: Container(
+                child: Card(
+                    color: Colors.deepOrangeAccent,
+                    child: Container(
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                                this.loading ? "Loading more stories" : "Load more stories",
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.white,
+                                )
+                            )
+                        ),
+                        padding: EdgeInsets.all(16.0)
+                    ),
+                    elevation: 2.0,
+                    margin: EdgeInsets.only(
+                      top: 16.0,
+                      bottom: 16.0,
+                      left: 10.0,
+                      right: 10.0,
+                    )
+                ),
+              ),
+            );
           }
           return GestureDetector(
+            onTap: () async {
+              Scaffold.of(context).showSnackBar(SnackBar(content: Text("You have reached the end of the feed")));
+            },
+            child: Container(
+              child: Card(
+                color: Colors.deepOrangeAccent,
+                child: Container(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "Load more stories",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
+                        )
+                      )
+                    ),
+                    padding: EdgeInsets.all(16.0)
+                ),
+                elevation: 2.0,
+                margin: EdgeInsets.only(
+                  bottom: 16.0,
+                  left: 10.0,
+                  right: 10.0,
+                )
+              ),
+            ),
+          );
+        }
+        var urlChecked = openedLinks.contains(data[index].url);
+        return GestureDetector(
             onTap: () async {
               String __url = data[index].url.startsWith("item?") ? "https://news.ycombinator.com/" + data[index].url : data[index].url;
               DateTime start = DateTime.now();
 
               final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => HNWebView(
-                    url: __url,
-                    title: data[index].title,
-                    analytics: this.analytics,
-                    observer: this.observer,
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => HNWebView(
+                        url: __url,
+                        title: data[index].title,
+                        analytics: this.analytics,
+                        observer: this.observer,
+                      )
                   )
-                )
               );
 
               this._sendAnalyticsEvent(
-                "story_read",
-                {
-                  "url": __url,
-                  "title": data[index].title,
-                  "time_spent": DateTime.now().difference(start).inSeconds,
-                }
+                  "story_read",
+                  {
+                    "url": __url,
+                    "title": data[index].title,
+                    "time_spent": DateTime.now().difference(start).inSeconds,
+                  }
               );
 
               _updateOpenedLinks(data[index].url, "onTap");
@@ -178,12 +241,12 @@ class HackerNewsState extends State<HackerNews> {
               var flag = openedLinks.contains(data[index].url) ? "not read" : "read";
               String __url = data[index].url.startsWith("item?") ? "https://news.ycombinator.com/" + data[index].url : data[index].url;
               this._sendAnalyticsEvent(
-                "story_bookmarked",
-                {
-                  "url": __url,
-                  "title": data[index].title,
-                  "bookmarked": !openedLinks.contains(data[index].url)
-                }
+                  "story_bookmarked",
+                  {
+                    "url": __url,
+                    "title": data[index].title,
+                    "bookmarked": !openedLinks.contains(data[index].url)
+                  }
               );
               final snackBar = SnackBar(content: Text("Marking as " + flag.toString() + ": " + data[index].url), duration: Duration(milliseconds: 500));
               Scaffold.of(context).showSnackBar(snackBar);
@@ -218,7 +281,7 @@ class HackerNewsState extends State<HackerNews> {
                 elevation: 2.0,
                 margin: EdgeInsets.only(
                   top: 16.0,
-                  bottom: index == data.length - 1 ? 16.0 : 0.0,
+                  bottom: index == data.length - 1 && currentPage >= maxPages ? 16.0 : 0.0,
                   left: 10.0,
                   right: 10.0,
                 ),
@@ -226,6 +289,21 @@ class HackerNewsState extends State<HackerNews> {
             )
         );
       }
+    );
+
+    if (this.loading) {
+      return Stack(
+        children: <Widget>[
+          listView,
+          Loader(text: "Fetching stories...")
+        ],
+      );
+    }
+
+    return Stack(
+      children: <Widget>[
+        listView,
+      ],
     );
   }
 }
